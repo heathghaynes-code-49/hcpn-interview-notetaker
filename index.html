@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCPN Microchurch Interview Notetaker</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<style>
+:root{
+  --surface-0:#F7F6F2;--surface-1:#F1EFE8;--surface-2:#FFFFFF;
+  --text-primary:#2C2C2A;--text-secondary:#5F5E5A;--text-muted:#888780;
+  --text-success:#27500A;--text-accent:#0C447C;--bg-accent:#E6F1FB;
+  --border:#D3D1C7;--border-strong:#B4B2A9;--border-accent:#378ADD;--radius:8px;
+  --text-danger:#A32D2D;--border-danger:#E24B4A;
+}
+*{box-sizing:border-box}
+body{background:var(--surface-0);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;line-height:1.6;max-width:780px;margin:0 auto;padding:2rem 1.25rem 4rem}
+h1{font-size:22px;font-weight:500;margin:0 0 4px}
+p.sub{color:var(--text-secondary);font-size:14px;margin:0 0 1.5rem}
+input,textarea{font-family:inherit;font-size:14px;color:var(--text-primary);background:var(--surface-2);border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:8px 10px;width:100%}
+input:focus,textarea:focus{outline:none;border-color:var(--text-secondary)}
+button{font-family:inherit;font-size:14px;color:var(--text-primary);background:var(--surface-2);border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:8px 14px;cursor:pointer}
+button:hover{background:var(--surface-1)}
+button:active{transform:scale(0.98)}
+summary{list-style:none;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+summary::marker{display:none}
+textarea{resize:vertical}
+.chevron{transition:transform .15s;margin-left:auto;flex-shrink:0}
+details[open] .chevron{transform:rotate(90deg)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong);flex-shrink:0}
+.qcard{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px}
+.qsum{padding:12px 16px;display:flex;align-items:center;gap:10px}
+.qbody{padding:0 16px 16px 16px;display:flex;flex-direction:column;gap:10px}
+label{font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px}
+.optcard{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;text-align:left}
+.optcard.selected{border:2px solid var(--border-accent)}
+.optcard i{font-size:20px;margin-bottom:8px;display:block}
+.optcard .t{font-size:14px;font-weight:500;margin:0 0 4px}
+.optcard .d{font-size:13px;color:var(--text-secondary);margin:0}
+.addlink{background:none;border:none;color:var(--text-accent);font-size:13px;padding:4px 0;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.addlink:hover{text-decoration:underline}
+.sectionlabel{font-size:13px;font-weight:500;margin:0 0 6px}
+</style>
+</head>
+<body>
+<h1>HCPN Microchurch interview notetaker</h1>
+<p class="sub">Fill in interview info, choose how you're bringing in the content, then send the assembled packet to Claude.</p>
+<div style="background:var(--surface-1);border-radius:var(--radius);padding:1rem;margin-bottom:1.25rem">
+  <div style="max-width:220px;margin-bottom:16px"><label for="f_date">Date *</label><input id="f_date" required placeholder="Jul 27, 2026"></div>
+  <p class="sectionlabel">Interviewers</p>
+  <div id="interviewerGroup" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px"></div>
+  <button type="button" id="addInterviewerBtn" class="addlink" style="display:none"><i class="ti ti-plus" aria-hidden="true"></i>Add another interviewer</button>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0 16px">
+    <div><label for="f_candidate">Candidate *</label><input id="f_candidate" required></div>
+    <div><label for="f_spouse">Spouse (if applicable)</label><input id="f_spouse"></div>
+    <div><label for="f_years">Years married (if applicable)</label><input id="f_years"></div>
+  </div>
+  <p class="sectionlabel">Children (if applicable)</p>
+  <div id="childrenGroup" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px"></div>
+  <button type="button" id="addChildBtn" class="addlink" style="display:none"><i class="ti ti-plus" aria-hidden="true"></i>Add another child</button>
+  <p id="requiredError" style="display:none;color:var(--text-danger);font-size:12px;margin:12px 0 0"></p>
+</div>
+<p style="font-size:14px;font-weight:500;margin:0 0 10px">How do you want to start?</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1.5rem">
+  <button class="optcard" id="opt_guide" onclick="selectMode('guide')"><i class="ti ti-clipboard-list" aria-hidden="true"></i><p class="t">Use interview guide</p><p class="d">Open the live question checklist during the interview.</p></button>
+  <button class="optcard" id="opt_notes" onclick="selectMode('notes')"><i class="ti ti-notes" aria-hidden="true"></i><p class="t">Upload interview notes</p><p class="d">I already took notes separately.</p></button>
+  <button class="optcard" id="opt_transcript" onclick="selectMode('transcript')"><i class="ti ti-file-text" aria-hidden="true"></i><p class="t">Upload transcript only</p><p class="d">I just have the speaker-labeled transcript.</p></button>
+</div>
+<div id="panel_guide" class="step-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:0.75rem;flex-wrap:wrap">
+    <div style="font-size:14px;color:var(--text-secondary)" id="progress">0 of 12 questions started</div>
+  </div>
+  <div id="qlist" style="display:flex;flex-direction:column;gap:8px"></div>
+  <details class="qcard" style="margin-top:8px">
+    <summary class="qsum">
+      <span class="dot" data-dot="general"></span>
+      <span style="font-size:14px">General observations — tone, nonverbal cues, follow-ups</span>
+      <i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+    </summary>
+    <div class="qbody"><textarea id="notes_general" rows="3" placeholder="Anything a transcript won't capture..."></textarea></div>
+  </details>
+  <div class="qcard" style="margin-top:1rem;padding:16px">
+    <label for="transcript_guide">After the interview, paste the speaker-labeled transcript here</label>
+    <textarea id="transcript_guide" rows="4" placeholder="Paste transcript text..."></textarea>
+    <input type="file" id="transcript_guide_file" accept=".txt,.md" style="margin-top:6px;font-size:12px">
+  </div>
+</div>
+<div id="panel_notes" class="step-panel">
+  <div class="qcard" style="padding:16px;margin-bottom:12px">
+    <label for="notes_freeform">Your interview notes</label>
+    <textarea id="notes_freeform" rows="6" placeholder="Paste your notes..."></textarea>
+    <input type="file" id="notes_freeform_file" accept=".txt,.md" style="margin-top:6px;font-size:12px">
+  </div>
+  <div class="qcard" style="padding:16px">
+    <label for="transcript_notes">Speaker-labeled transcript</label>
+    <textarea id="transcript_notes" rows="6" placeholder="Paste transcript text..."></textarea>
+    <input type="file" id="transcript_notes_file" accept=".txt,.md" style="margin-top:6px;font-size:12px">
+  </div>
+</div>
+<div id="panel_transcript" class="step-panel">
+  <div class="qcard" style="padding:16px">
+    <label for="transcript_only">Speaker-labeled transcript</label>
+    <textarea id="transcript_only" rows="8" placeholder="Paste transcript text..."></textarea>
+    <input type="file" id="transcript_only_file" accept=".txt,.md" style="margin-top:6px;font-size:12px">
+  </div>
+</div>
+<div id="sendcard" class="step-panel" style="background:var(--bg-accent);border-radius:12px;padding:1rem 1.25rem;margin-top:1.5rem">
+  <p style="font-size:14px;font-weight:500;margin:0 0 4px;color:var(--text-accent)">Ready for Claude</p>
+  <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px">Copies everything into one packet, then opens the project so you can paste and send.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="sendBtn"><i class="ti ti-copy" aria-hidden="true" style="margin-right:4px"></i>Copy packet for Claude</button>
+    <a href="https://claude.ai/project/019fa506-dfb1-7662-86cd-deb077e8b3e7" target="_blank" rel="noopener" id="openProjectLink" style="display:inline-flex;align-items:center;gap:4px;font-size:14px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:8px 14px;text-decoration:none;color:var(--text-primary)">Open project<i class="ti ti-external-link" aria-hidden="true"></i></a>
+    <button id="downloadBtn"><i class="ti ti-download" aria-hidden="true" style="margin-right:4px"></i>Download backup</button>
+  </div>
+  <div id="manualCopyWrap" style="display:none;margin-top:12px">
+    <label for="manualCopyBox">If the copy button didn't work, click inside this box, select all (Ctrl/Cmd+A), and copy (Ctrl/Cmd+C) manually</label>
+    <textarea id="manualCopyBox" rows="6" readonly onclick="this.select()"></textarea>
+  </div>
+</div>
+<script>
+function createDynamicGroup(containerId,addBtnId,idPrefix,labelFn,firstRequired){
+  const container=document.getElementById(containerId);
+  const addBtn=document.getElementById(addBtnId);
+  let count=0;
+  function lastInput(){const inputs=container.querySelectorAll("input");return inputs[inputs.length-1];}
+  function addField(){
+    count++;
+    const inputId=idPrefix+"_"+count;
+    const label=labelFn(count);
+    const req=count===1&&firstRequired;
+    const wrap=document.createElement("div");
+    wrap.innerHTML='<label for="'+inputId+'">'+label+(req?" *":"")+'</label><input id="'+inputId+'"'+(req?" required":"")+'>';
+    container.appendChild(wrap);
+  }
+  addField();
+  container.addEventListener("input",function(e){
+    if(e.target.tagName==="INPUT"){
+      const last=lastInput();
+      addBtn.style.display=(e.target===last&&e.target.value.trim())?"inline-flex":"none";
+    }
+  });
+  addBtn.addEventListener("click",function(){
+    addField();
+    addBtn.style.display="none";
+    lastInput().focus();
+  });
+  return {getValues:function(){return Array.from(container.querySelectorAll("input")).map(i=>i.value.trim()).filter(v=>v);}};
+}
+const interviewerGroup=createDynamicGroup("interviewerGroup","addInterviewerBtn","f_interviewer",function(n){return n===1?"Lead Interviewer":"Interviewer";},true);
+const childrenGroup=createDynamicGroup("childrenGroup","addChildBtn","f_child",function(n){return "Child's Name & Age";},false);
+const questions=["Share your salvation testimony.","How would you describe God's call on your life?","Why do you want to be a part of this cohort?","What areas and roles have you served in disciplemaking ministry?","What experiences, education, programs, internships, etc. have prepared you for reaching a people with the Gospel and making disciples that make disciples?","Define Disciple.","Define discipleship/disciplemaking.","Who discipled you? How did they disciple you?","Describe your relationship and process with those you are directly discipling right now. Include their names and how long you have been discipling them.","Tell us about the last time you shared the Gospel from your mouth to someone's ear (include when and where this was).","What is your disciplemaking pathway (if you have one — it does not disqualify you if you do not have one)?","How did you hear about the HCPN Microchurch Cohort?"];
+const qlist=document.getElementById("qlist");
+questions.forEach((text,i)=>{
+  const n=i+1;
+  const d=document.createElement("details");
+  d.className="qcard";
+  d.innerHTML='<summary class="qsum"><span class="dot" data-dot="'+n+'"></span><span style="font-size:13px;color:var(--text-muted);flex-shrink:0">Q'+n+'</span><span style="font-size:14px">'+text+'</span><i class="ti ti-chevron-right chevron" aria-hidden="true"></i></summary><div class="qbody"><div><label for="q'+n+'_candidate">Candidate notes</label><textarea id="q'+n+'_candidate" rows="3" placeholder="Notes as they answer..."></textarea></div><div><label for="q'+n+'_spouse">Spouse notes (optional)</label><textarea id="q'+n+'_spouse" rows="2" placeholder="If spouse adds anything..."></textarea></div></div>';
+  qlist.appendChild(d);
+});
+document.querySelectorAll(".step-panel").forEach(p=>p.style.display="none");
+let mode=null;
+function selectMode(m){
+  mode=m;
+  ["guide","notes","transcript"].forEach(k=>{
+    document.getElementById("opt_"+k).classList.toggle("selected",k===m);
+    document.getElementById("panel_"+k).style.display=k===m?"block":"none";
+  });
+  document.getElementById("sendcard").style.display="block";
+}
+function updateProgress(){
+  let done=0;
+  for(let n=1;n<=12;n++){
+    const cand=document.getElementById("q"+n+"_candidate").value.trim();
+    const sp=document.getElementById("q"+n+"_spouse").value.trim();
+    const dot=document.querySelector('[data-dot="'+n+'"]');
+    if(cand||sp){dot.style.background="var(--text-success)";done++;}else{dot.style.background="var(--border-strong)";}
+  }
+  const gen=document.getElementById("notes_general").value.trim();
+  const genDot=document.querySelector('[data-dot="general"]');
+  if(gen){genDot.style.background="var(--text-success)";done++;}
+  document.getElementById("progress").textContent=done+" of 13 sections started";
+}
+document.addEventListener("input",function(e){
+  if(e.target.tagName==="TEXTAREA"&&e.target.id.indexOf("q")===0)updateProgress();
+  if(e.target.id==="notes_general")updateProgress();
+});
+function wireFile(fileId,textareaId){
+  document.getElementById(fileId).addEventListener("change",function(e){
+    const file=e.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(ev){document.getElementById(textareaId).value=ev.target.result;};
+    reader.readAsText(file);
+  });
+}
+wireFile("transcript_guide_file","transcript_guide");
+wireFile("notes_freeform_file","notes_freeform");
+wireFile("transcript_notes_file","transcript_notes");
+wireFile("transcript_only_file","transcript_only");
+function buildMarkdown(){
+  const val=id=>document.getElementById(id).value.trim();
+  let md="# HCPN Microchurch Cohort — Interview Packet\n\n## Interview Information\n";
+  md+="- Date: "+(val("f_date")||"—")+"\n";
+  const interviewers=interviewerGroup.getValues();
+  md+="- Lead Interviewer: "+(interviewers[0]||"—")+"\n";
+  for(let i=1;i<interviewers.length;i++){md+="- Interviewer: "+interviewers[i]+"\n";}
+  md+="- Candidate(s): "+(val("f_candidate")||"—")+"\n";
+  md+="- Spouse (if applicable): "+(val("f_spouse")||"—")+"\n";
+  md+="- Years married (if applicable): "+(val("f_years")||"—")+"\n";
+  const children=childrenGroup.getValues();
+  if(children.length){children.forEach(c=>md+="- Child: "+c+"\n");}else{md+="- Children (if applicable): —\n";}
+  md+="\n";
+  let transcriptText="";
+  if(mode==="guide"){
+    md+="## Live interviewer notes\n\n";
+    questions.forEach((text,i)=>{
+      const n=i+1;
+      const cand=val("q"+n+"_candidate");
+      const sp=val("q"+n+"_spouse");
+      md+="### Q"+n+". "+text+"\n- Candidate: "+(cand||"(no notes)")+"\n";
+      if(sp)md+="- Spouse: "+sp+"\n";
+      md+="\n";
+    });
+    md+="## General observations\n"+(val("notes_general")||"(none)")+"\n\n";
+    transcriptText=val("transcript_guide");
+  }else if(mode==="notes"){
+    md+="## Interview notes\n"+(val("notes_freeform")||"(none)")+"\n\n";
+    transcriptText=val("transcript_notes");
+  }else if(mode==="transcript"){
+    transcriptText=val("transcript_only");
+  }
+  if(transcriptText)md+="## Transcript\n"+transcriptText+"\n";
+  return md;
+}
+function validateRequired(){
+  const fields=[["f_date","Date"],["f_interviewer_1","Lead Interviewer"],["f_candidate","Candidate"]];
+  let missing=[];
+  let firstEl=null;
+  fields.forEach(([id,label])=>{
+    const el=document.getElementById(id);
+    const empty=!el.value.trim();
+    el.style.borderColor=empty?"var(--border-danger)":"";
+    if(empty){missing.push(label);if(!firstEl)firstEl=el;}
+  });
+  const errEl=document.getElementById("requiredError");
+  if(missing.length){
+    errEl.textContent="Please fill in: "+missing.join(", ")+".";
+    errEl.style.display="block";
+    firstEl.focus();
+    return false;
+  }
+  errEl.style.display="none";
+  return true;
+}
+function flash(btn,label){
+  const old=btn.innerHTML;
+  btn.textContent=label;
+  setTimeout(()=>{btn.innerHTML=old;},1500);
+}
+function fallbackCopy(md,btn){
+  const ta=document.createElement("textarea");
+  ta.value=md;
+  document.body.appendChild(ta);
+  ta.select();
+  try{document.execCommand("copy");flash(btn,"Copied");}catch(e){flash(btn,"Copy failed");}
+  document.body.removeChild(ta);
+}
+document.getElementById("sendBtn").addEventListener("click",function(){
+  if(!validateRequired())return;
+  const md=buildMarkdown();
+  const btn=this;
+  document.getElementById("manualCopyBox").value=md;
+  document.getElementById("manualCopyWrap").style.display="block";
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(md).then(()=>flash(btn,"Copied — now paste in the project")).catch(()=>fallbackCopy(md,btn));
+  }else{
+    fallbackCopy(md,btn);
+  }
+});
+document.getElementById("downloadBtn").addEventListener("click",function(){
+  if(!validateRequired())return;
+  const md=buildMarkdown();
+  const cand=(document.getElementById("f_candidate").value.trim()||"candidate").replace(/[^a-z0-9]+/gi,"_");
+  const date=(document.getElementById("f_date").value.trim()||"notes").replace(/[^a-z0-9]+/gi,"_");
+  const blob=new Blob([md],{type:"text/markdown"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="Interview_Packet_"+cand+"_"+date+".md";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  flash(this,"Downloaded");
+});
+</script>
+</body>
+</html>
