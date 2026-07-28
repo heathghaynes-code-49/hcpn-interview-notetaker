@@ -47,7 +47,7 @@ label{font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px
 <h1>HCPN Microchurch interview notetaker</h1>
 <p class="sub">Fill in interview info, choose how you're bringing in the content, then send the assembled packet to Claude.</p>
 <div style="background:var(--surface-1);border-radius:var(--radius);padding:1rem;margin-bottom:1.25rem">
-  <div style="max-width:220px;margin-bottom:16px"><label for="f_date">Date *</label><input id="f_date" required placeholder="Jul 27, 2026"></div>
+  <div style="max-width:220px;margin-bottom:16px"><label for="f_date">Date *</label><input type="date" id="f_date" required></div>
   <p class="sectionlabel">Interviewers</p>
   <div id="interviewerGroup" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px"></div>
   <button type="button" id="addInterviewerBtn" class="addlink" style="display:none"><i class="ti ti-plus" aria-hidden="true"></i>Add another interviewer</button>
@@ -198,10 +198,16 @@ wireFile("transcript_guide_file","transcript_guide");
 wireFile("notes_freeform_file","notes_freeform");
 wireFile("transcript_notes_file","transcript_notes");
 wireFile("transcript_only_file","transcript_only");
+function formatDateUS(iso){
+  if(!iso)return "";
+  const parts=iso.split("-");
+  if(parts.length!==3)return iso;
+  return parts[1]+"/"+parts[2]+"/"+parts[0];
+}
 function buildMarkdown(){
   const val=id=>document.getElementById(id).value.trim();
   let md="# HCPN Microchurch Cohort — Interview Packet\n\n## Interview Information\n";
-  md+="- Date: "+(val("f_date")||"—")+"\n";
+  md+="- Date: "+(formatDateUS(val("f_date"))||"—")+"\n";
   const interviewers=interviewerGroup.getValues();
   md+="- Lead Interviewer: "+(interviewers[0]||"—")+"\n";
   for(let i=1;i<interviewers.length;i++){md+="- Interviewer: "+interviewers[i]+"\n";}
