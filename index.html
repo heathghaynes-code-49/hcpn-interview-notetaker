@@ -106,13 +106,20 @@ label{font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px
   </div>
 </div>
 <div id="sendcard" class="step-panel" style="background:var(--bg-accent);border-radius:12px;padding:1rem 1.25rem;margin-top:1.5rem">
-  <p style="font-size:14px;font-weight:500;margin:0 0 4px;color:var(--text-accent)">Ready for Claude</p>
-  <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px">Copies everything into one packet, then opens the project so you can paste and send.</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button id="sendBtn"><i class="ti ti-copy" aria-hidden="true" style="margin-right:4px"></i>Copy packet for Claude</button>
-    <a href="https://claude.ai/project/019fa506-dfb1-7662-86cd-deb077e8b3e7" target="_blank" rel="noopener" id="openProjectLink" style="display:inline-flex;align-items:center;gap:4px;font-size:14px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:8px 14px;text-decoration:none;color:var(--text-primary)">Open project<i class="ti ti-external-link" aria-hidden="true"></i></a>
-    <button id="downloadBtn"><i class="ti ti-download" aria-hidden="true" style="margin-right:4px"></i>Download backup</button>
+  <p style="font-size:14px;font-weight:500;margin:0 0 4px;color:var(--text-accent)">Ready to send</p>
+  <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px">Copies everything into one packet. If you're not the one running the assessment, email the packet to Heath — he'll run it through the project.</p>
+  <div style="margin-bottom:10px">
+    <button id="emailBtn" style="background:var(--text-accent);border-color:var(--text-accent);color:#fff"><i class="ti ti-mail" aria-hidden="true" style="margin-right:4px"></i>Email packet to Heath</button>
+    <p style="font-size:12px;color:var(--text-secondary);margin:6px 0 0">Copies the packet and opens an email to Heath with the subject filled in — paste (Ctrl/Cmd+V) into the body, then send.</p>
   </div>
+  <details style="margin-top:6px">
+    <summary style="font-size:13px;color:var(--text-secondary);cursor:pointer">Running the assessment yourself instead?</summary>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button id="sendBtn"><i class="ti ti-copy" aria-hidden="true" style="margin-right:4px"></i>Copy packet for Claude</button>
+      <a href="https://claude.ai/project/019fa506-dfb1-7662-86cd-deb077e8b3e7" target="_blank" rel="noopener" id="openProjectLink" style="display:inline-flex;align-items:center;gap:4px;font-size:14px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:8px 14px;text-decoration:none;color:var(--text-primary)">Open project<i class="ti ti-external-link" aria-hidden="true"></i></a>
+      <button id="downloadBtn"><i class="ti ti-download" aria-hidden="true" style="margin-right:4px"></i>Download backup</button>
+    </div>
+  </details>
   <div id="manualCopyWrap" style="display:none;margin-top:12px">
     <label for="manualCopyBox">If the copy button didn't work, click inside this box, select all (Ctrl/Cmd+A), and copy (Ctrl/Cmd+C) manually</label>
     <textarea id="manualCopyBox" rows="6" readonly onclick="this.select()"></textarea>
@@ -282,6 +289,24 @@ document.getElementById("sendBtn").addEventListener("click",function(){
     navigator.clipboard.writeText(md).then(()=>flash(btn,"Copied — now paste in the project")).catch(()=>fallbackCopy(md,btn));
   }else{
     fallbackCopy(md,btn);
+  }
+});
+document.getElementById("emailBtn").addEventListener("click",function(){
+  if(!validateRequired())return;
+  const md=buildMarkdown();
+  const btn=this;
+  document.getElementById("manualCopyBox").value=md;
+  document.getElementById("manualCopyWrap").style.display="block";
+  const cand=document.getElementById("f_candidate").value.trim()||"Candidate";
+  const dateUS=formatDateUS(document.getElementById("f_date").value.trim());
+  const subject=encodeURIComponent("HCPN Interview Packet — "+cand+(dateUS?" — "+dateUS:""));
+  const mailto="mailto:heathghaynes@gmail.com?subject="+subject;
+  function openMail(){window.location.href=mailto;}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(md).then(()=>{flash(btn,"Copied — opening email...");setTimeout(openMail,500);}).catch(()=>{fallbackCopy(md,btn);setTimeout(openMail,500);});
+  }else{
+    fallbackCopy(md,btn);
+    setTimeout(openMail,500);
   }
 });
 document.getElementById("downloadBtn").addEventListener("click",function(){
