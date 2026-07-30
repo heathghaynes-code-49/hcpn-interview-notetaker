@@ -300,7 +300,7 @@ document.getElementById("emailBtn").addEventListener("click",function(){
   const cand=document.getElementById("f_candidate").value.trim()||"Candidate";
   const dateUS=formatDateUS(document.getElementById("f_date").value.trim());
   const subject=encodeURIComponent("HCPN Interview Packet — "+cand+(dateUS?" — "+dateUS:""));
-  const mailto="mailto:heathghaynes@gmail.com?subject="+subject;
+  const mailto="mailto:heath@thebridgehtx.org?subject="+subject;
   function openMail(){window.location.href=mailto;}
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(md).then(()=>{flash(btn,"Copied — opening email...");setTimeout(openMail,500);}).catch(()=>{fallbackCopy(md,btn);setTimeout(openMail,500);});
